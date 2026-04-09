@@ -1,3 +1,12 @@
+import sys
+import asyncio
+
+# ---- Windows asyncio fix (must be before any async imports) ----
+# Playwright requires ProactorEventLoop on Windows; set it early.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+# ----------------------------------------------------------------
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -18,7 +27,7 @@ app = FastAPI(
 # Enable CORS for the Flutter Frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to your Flutter app's origin
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,15 +52,15 @@ async def extract_data(request: ExtractRequest):
     """
     logger.info(f"Received extraction request for {request.url}")
     try:
-         extracted_data = await run_extraction_pipeline(request.url, request.query)
-         logger.info(f"Successfully processed extraction request for {request.url}")
-         return ExtractResponse(data=extracted_data)
+        extracted_data = await run_extraction_pipeline(request.url, request.query)
+        logger.info(f"Successfully processed extraction request for {request.url}")
+        return ExtractResponse(data=extracted_data)
     except ValueError as ve:
-         logger.error(f"Validation error during extraction: {ve}")
-         raise HTTPException(status_code=400, detail=str(ve))
+        logger.error(f"Validation error during extraction: {ve}")
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-         logger.error(f"Internal server error during extraction: {e}")
-         raise HTTPException(status_code=500, detail=f"Failed to extract data: {e}")
+        logger.error(f"Internal server error during extraction: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to extract data: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
