@@ -1,6 +1,9 @@
 import sys
 import asyncio
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # ---- Windows asyncio fix (must be before any async imports) ----
 # Playwright requires ProactorEventLoop on Windows; set it early.
 if sys.platform == "win32":
@@ -12,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
 
-from .extractor import run_extraction_pipeline
+from extractor import run_extraction_pipeline
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

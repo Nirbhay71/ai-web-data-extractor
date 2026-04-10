@@ -20,7 +20,7 @@ def extract_structured_data(text_content: str, user_query: str) -> dict:
         if not os.environ.get("GEMINI_API_KEY"):
             logger.warning("GEMINI_API_KEY is not set in environment. Extraction may fail.")
             
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-3-flash-preview")
         
         system_prompt = (
             "You are an expert data extractor. Given the following unstructured text extracted "

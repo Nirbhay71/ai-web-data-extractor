@@ -1,7 +1,7 @@
 import logging
-from .scraper import fetch_html
-from .html_cleaner import clean_html
-from .gemini_client import extract_structured_data
+from scraper import fetch_html
+from html_cleaner import clean_html
+from gemini_client import extract_structured_data
 
 logger = logging.getLogger(__name__)
 

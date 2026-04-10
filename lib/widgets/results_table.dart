@@ -66,72 +66,15 @@ class _ResultsTableState extends State<ResultsTable> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(),
-        const SizedBox(height: 16),
         _buildSearchAndControls(),
-        const SizedBox(height: 12),
+        const SizedBox(height: 32),
         _buildTable(),
         if (_totalPages > 1) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 32),
           _buildPagination(),
         ],
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: const Color(0xFF00D4FF).withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.table_chart_rounded,
-            color: Color(0xFF00D4FF),
-            size: 17,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Extracted Results',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              '${widget.totalCount} records • ${_columns.length} fields',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF6060A0),
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        _ExportButton(
-          icon: Icons.table_rows_rounded,
-          label: 'CSV',
-          color: const Color(0xFF2ECC71),
-          onTap: widget.onCsvExport,
-        ),
-        const SizedBox(width: 8),
-        _ExportButton(
-          icon: Icons.data_object_rounded,
-          label: 'JSON',
-          color: const Color(0xFF00D4FF),
-          onTap: widget.onJsonExport,
-        ),
       ],
     );
   }
@@ -145,125 +88,62 @@ class _ResultsTableState extends State<ResultsTable> {
               _searchQuery = v;
               _currentPage = 0;
             }),
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: 'Search results...',
-              prefixIcon: const Icon(
-                Icons.search_rounded,
-                color: Color(0xFF6060A0),
-                size: 18,
+            style: const TextStyle(color: Color(0xFF111111), fontSize: 16, fontWeight: FontWeight.w500),
+            decoration: const InputDecoration(
+              hintText: 'SEARCH RESULTS',
+              prefixIcon: Icon(
+                Icons.search,
+                color: Color(0xFF757575),
+                size: 24,
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              filled: true,
-              fillColor: const Color(0xFF0F0F1A),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF1E1E35)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF1E1E35)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide:
-                    const BorderSide(color: Color(0xFF6C63FF), width: 1.5),
-              ),
+              contentPadding: EdgeInsets.symmetric(vertical: 24),
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        _buildCopyRawButton(),
+        const SizedBox(width: 24),
+        _ExportButton(
+          label: 'COPY CSV',
+          onTap: widget.onCsvExport,
+        ),
+        const SizedBox(width: 12),
+        _ExportButton(
+          label: 'COPY JSON',
+          onTap: widget.onJsonExport,
+        ),
       ],
-    );
-  }
-
-  Widget _buildCopyRawButton() {
-    return InkWell(
-      onTap: () async {
-        final json = CsvExportService.toJson(widget.data);
-        await Clipboard.setData(ClipboardData(text: json));
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('JSON copied to clipboard'),
-              backgroundColor: const Color(0xFF6C63FF),
-              duration: const Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              margin: const EdgeInsets.all(16),
-            ),
-          );
-        }
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F0F1A),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF1E1E35)),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.copy_rounded, color: Color(0xFF6060A0), size: 16),
-            SizedBox(width: 6),
-            Text(
-              'Copy JSON',
-              style: TextStyle(color: Color(0xFF6060A0), fontSize: 12),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildTable() {
     if (_columns.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D0D1C),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1A1A30)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width - 48,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: MediaQuery.of(context).size.width - 80,
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            dividerColor: const Color(0xFFE5E5E5),
           ),
           child: DataTable(
-            headingRowColor: WidgetStateProperty.all(
-              const Color(0xFF13132A),
-            ),
+            headingRowColor: WidgetStateProperty.all(const Color(0xFFFFFFFF)),
             dataRowColor: WidgetStateProperty.resolveWith<Color?>(
               (states) {
                 if (states.contains(WidgetState.hovered)) {
-                  return const Color(0xFF6C63FF).withOpacity(0.06);
+                  return const Color(0xFFF5F5F5);
                 }
-                return null;
+                return const Color(0xFFFFFFFF);
               },
             ),
-            columnSpacing: 24,
-            headingRowHeight: 46,
-            dataRowMinHeight: 42,
-            dataRowMaxHeight: 56,
-            dividerThickness: 0.5,
+            columnSpacing: 40,
+            headingRowHeight: 64,
+            dataRowMinHeight: 64,
+            dataRowMaxHeight: 80,
+            dividerThickness: 1.0,
             sortColumnIndex: _sortColumnIndex,
             sortAscending: _sortAscending,
-            border: TableBorder(
-              horizontalInside: BorderSide(
-                color: const Color(0xFF1A1A30),
-                width: 0.5,
-              ),
-            ),
             columns: _columns.asMap().entries.map((entry) {
               final i = entry.key;
               final col = entry.value;
@@ -271,10 +151,10 @@ class _ResultsTableState extends State<ResultsTable> {
                 label: Text(
                   col.toUpperCase(),
                   style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF8080A0),
-                    letterSpacing: 0.8,
+                    fontFamily: 'Impact',
+                    fontSize: 20,
+                    color: Color(0xFF111111),
+                    letterSpacing: 1.0,
                   ),
                 ),
                 onSort: (colIdx, asc) {
@@ -292,16 +172,16 @@ class _ResultsTableState extends State<ResultsTable> {
                   final val = rowMap[col]?.toString() ?? '—';
                   return DataCell(
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 250),
+                      constraints: const BoxConstraints(maxWidth: 400),
                       child: Tooltip(
                         message: val,
                         child: Text(
                           val,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFFD0D0E8),
-                            height: 1.4,
+                            fontSize: 16,
+                            color: Color(0xFF111111),
+                            height: 1.5,
                           ),
                         ),
                       ),
@@ -311,14 +191,15 @@ class _ResultsTableState extends State<ResultsTable> {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Copied: ${val.length > 40 ? '${val.substring(0, 40)}...' : val}'),
-                            backgroundColor: const Color(0xFF1E1E35),
+                            content: Text(
+                              'COPIED: ${val.length > 40 ? '${val.substring(0, 40)}...' : val}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                            backgroundColor: const Color(0xFF111111),
                             duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            margin: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
                           ),
                         );
                       }
@@ -338,149 +219,59 @@ class _ResultsTableState extends State<ResultsTable> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Showing ${_currentPage * _rowsPerPage + 1}–${(_currentPage * _rowsPerPage + _pageData.length)} of ${_sortedData.length}',
-          style: const TextStyle(fontSize: 12, color: Color(0xFF6060A0)),
+          'SHOWING ${_currentPage * _rowsPerPage + 1} TO ${(_currentPage * _rowsPerPage + _pageData.length)} OF ${_sortedData.length}',
+          style: const TextStyle(
+            fontSize: 14, 
+            color: Color(0xFF757575), 
+            fontWeight: FontWeight.w700, 
+            letterSpacing: 1.5
+          ),
         ),
-        const SizedBox(width: 16),
-        _PageButton(
-          icon: Icons.chevron_left_rounded,
-          enabled: _currentPage > 0,
-          onTap: () => setState(() => _currentPage--),
+        const SizedBox(width: 24),
+        IconButton(
+          onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
+          icon: const Icon(Icons.arrow_back),
+          color: const Color(0xFF111111),
         ),
-        const SizedBox(width: 4),
-        ...List.generate(_totalPages.clamp(0, 5), (i) {
-          final page = i;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: InkWell(
-              onTap: () => setState(() => _currentPage = page),
-              borderRadius: BorderRadius.circular(6),
-              child: Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: _currentPage == page
-                      ? const Color(0xFF6C63FF)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Center(
-                  child: Text(
-                    '${page + 1}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _currentPage == page
-                          ? Colors.white
-                          : const Color(0xFF6060A0),
-                      fontWeight: _currentPage == page
-                          ? FontWeight.w700
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-        const SizedBox(width: 4),
-        _PageButton(
-          icon: Icons.chevron_right_rounded,
-          enabled: _currentPage < _totalPages - 1,
-          onTap: () => setState(() => _currentPage++),
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: _currentPage < _totalPages - 1 ? () => setState(() => _currentPage++) : null,
+          icon: const Icon(Icons.arrow_forward),
+          color: const Color(0xFF111111),
         ),
       ],
     );
   }
 }
 
-class _PageButton extends StatelessWidget {
-  final IconData icon;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  const _PageButton({
-    required this.icon,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFF1E1E35)),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: enabled ? const Color(0xFF8080A0) : const Color(0xFF2A2A45),
-        ),
-      ),
-    );
-  }
-}
-
-class _ExportButton extends StatefulWidget {
-  final IconData icon;
+class _ExportButton extends StatelessWidget {
   final String label;
-  final Color color;
   final VoidCallback onTap;
 
   const _ExportButton({
-    required this.icon,
     required this.label,
-    required this.color,
     required this.onTap,
   });
 
   @override
-  State<_ExportButton> createState() => _ExportButtonState();
-}
-
-class _ExportButtonState extends State<_ExportButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: _hovered
-                ? widget.color.withOpacity(0.15)
-                : widget.color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: widget.color.withOpacity(_hovered ? 0.5 : 0.2),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(widget.icon, size: 14, color: widget.color),
-              const SizedBox(width: 5),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: widget.color,
-                ),
-              ),
-            ],
-          ),
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF111111),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        side: const BorderSide(color: Color(0xFFE5E5E5), width: 1.5),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'Impact',
+          fontSize: 16,
+          letterSpacing: 1.0,
+          color: Color(0xFF111111),
         ),
       ),
     );
