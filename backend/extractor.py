@@ -2,8 +2,10 @@ import logging
 from scraper import fetch_html
 from html_cleaner import clean_html
 from gemini_client import extract_structured_data
+from errors import ProcessingError
 
 logger = logging.getLogger(__name__)
+
 
 async def run_extraction_pipeline(url: str, query: str) -> dict:
     """
@@ -20,6 +22,12 @@ async def run_extraction_pipeline(url: str, query: str) -> dict:
         
         # Step 2: Clean
         cleaned_text = clean_html(raw_html)
+        
+        if not cleaned_text or len(cleaned_text.strip()) < 10:
+             raise ProcessingError(
+                 user_message="CONTENT MISSING: The scraped page contains no readable text.",
+                 developer_hint="The HTML cleaner stripped all content, or the site is a Single Page App (SPA) that requires more time to render. Check if the site loads data via JavaScript."
+             )
         
         # Step 3: Extract with LLM
         structured_data = extract_structured_data(cleaned_text, query)

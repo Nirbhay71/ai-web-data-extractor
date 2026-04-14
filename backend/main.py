@@ -5,9 +5,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ---- Windows asyncio fix (must be before any async imports) ----
-# Playwright requires ProactorEventLoop on Windows; set it early.
 if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    try:
+        from asyncio import WindowsProactorEventLoopPolicy
+    except ImportError:
+        pass
+    else:
+        if not isinstance(asyncio.get_event_loop_policy(), WindowsProactorEventLoopPolicy):
+            asyncio.set_event_loop_policy(WindowsProactorEventLoopPolicy())
 # ----------------------------------------------------------------
 
 from fastapi import FastAPI, HTTPException
@@ -47,6 +52,8 @@ class ExtractResponse(BaseModel):
 def read_root():
     return {"message": "AI Web Scraper API is running."}
 
+from errors import translate_error
+
 @app.post("/extract", response_model=ExtractResponse)
 async def extract_data(request: ExtractRequest):
     """
@@ -62,9 +69,17 @@ async def extract_data(request: ExtractRequest):
         logger.error(f"Validation error during extraction: {ve}")
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        logger.error(f"Internal server error during extraction: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to extract data: {str(e)}")
+        logger.error(f"Error during extraction: {e}")
+        error_info = translate_error(e)
+        # We blend the user message and developer hint for the frontend
+        full_detail = f"{error_info['user_message']}\n\nDEVELOPER HINT: {error_info['developer_hint']}"
+        raise HTTPException(status_code=500, detail=full_detail)
 
 if __name__ == "__main__":
     import uvicorn
+    # Ensure policy is set in worker process too
+    if sys.platform == "win32":
+        from asyncio import WindowsProactorEventLoopPolicy
+        asyncio.set_event_loop_policy(WindowsProactorEventLoopPolicy())
+    
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
